@@ -1,5 +1,6 @@
-Flask
-torch
-torchvision
-Pillow
-opencv-python-headless
+Flask==2.2.2
+torch==1.13.1
+torchvision==0.14.1
+Pillow==9.4.0
+numpy==1.23.5
+gunicorn==20.1.0
