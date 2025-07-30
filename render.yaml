@@ -4,4 +4,4 @@ services:
     env: python
     buildCommand: "pip install -r requirements.txt"
     # CORRECTED START COMMAND:
-    startCommand: "gunicorn app:app"
+    startCommand: "gunicorn app:app.py"
