@@ -3,7 +3,7 @@ services:
     name: brain-3d-analyzer
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: python backend/app.py
+    startCommand: app.py
     envVars:
       - key: PORT
         value: 8000
