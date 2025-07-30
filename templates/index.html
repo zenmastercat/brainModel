@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain MRI Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Brain MRI Analyzer</h1>
+            <p>Upload a 2D slice of a brain MRI to get an analysis.</p>
+            <p class="disclaimer"><strong>Disclaimer:</strong> For educational purposes only. Not for medical diagnosis.</p>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <input type="file" id="mri-file-input" accept="image/png, image/jpeg, image/gif">
+                <label for="mri-file-input" class="file-label">Choose an Image</label>
+                <button id="analyze-btn" disabled>Analyze</button>
+            </div>
+
+            <div id="loader" class="hidden">
+                <div class="spinner"></div>
+                <p>Analyzing, please wait...</p>
+            </div>
+
+            <div id="results-section" class="hidden">
+                <h2>Analysis Results</h2>
+                <div class="results-grid">
+                    <div class="image-card">
+                        <h3>Original Image</h3>
+                        <img id="original-image" src="#" alt="Original MRI">
+                    </div>
+                    <div class="image-card">
+                        <h3>Segmentation Overlay</h3>
+                        <div class="segmentation-container">
+                            <img id="segmented-image" src="#" alt="Segmented MRI">
+                            <img id="mask-overlay" src="#" alt="Tumor Mask">
+                        </div>
+                    </div>
+                </div>
+                <div class="prediction-card">
+                    <h3>Prediction</h3>
+                    <p id="prediction-text">Tumor Type: <span class="highlight">...</span></p>
+                    <p id="confidence-text">Confidence: <span class="highlight">...</span></p>
+                </div>
+            </div>
+             <div id="error-section" class="hidden">
+                <p>An error occurred. Please try again with a different image.</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
