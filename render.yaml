@@ -2,8 +2,6 @@ services:
   - type: web
     name: brain-3d-analyzer
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: app.py
-    envVars:
-      - key: PORT
-        value: 8000
+    buildCommand: "pip install -r requirements.txt"
+    # CORRECTED START COMMAND:
+    startCommand: "gunicorn app:app"
