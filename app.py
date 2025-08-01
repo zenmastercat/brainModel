@@ -18,9 +18,9 @@ app = Flask(__name__)
 device = torch.device("cpu") # Run on CPU for deployment
 
 # --- URLS for your hosted models ---
-# These are the direct download links from your Hugging Face repository
-CLS_MODEL_URL = "https://huggingface.co/zenmastercat/brain-mri-analyzer-models/resolve/main/classification_model_quantized.pth"
-SEG_MODEL_URL = "https://huggingface.co/zenmastercat/brain-mri-analyzer-models/resolve/main/segmentation_model_weights.pth"
+# These are the direct download links from your Limewire upload
+CLS_MODEL_URL = "https://limewire.com/d/nNxZ2"
+SEG_MODEL_URL = "https://limewire.com/d/SPcTK"
 
 # Define local paths to save the models
 MODELS_DIR = "models"
@@ -33,6 +33,10 @@ def download_model(url, path):
         print(f"Downloading model from {url} to {path}...")
         os.makedirs(MODELS_DIR, exist_ok=True)
         try:
+            # Add a user-agent header to mimic a browser, which can help with some hosts
+            opener = urllib.request.build_opener()
+            opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+            urllib.request.install_opener(opener)
             urllib.request.urlretrieve(url, path)
             print("Download complete.")
         except Exception as e:
@@ -45,13 +49,8 @@ def download_model(url, path):
         file_size_bytes = os.path.getsize(path)
         file_size_mb = file_size_bytes / (1024 * 1024)
         print(f"✅ Verified file: {path}. Size: {file_size_mb:.2f} MB")
-        # A real model file will be much larger than 1KB (approx 0.001 MB).
-        # A Git LFS pointer file is usually around 133 bytes.
         if file_size_bytes < 1000:
-            print("🚨 WARNING: CRITICAL ERROR! 🚨")
-            print("This file is extremely small. It is a Git LFS pointer, NOT the real model.")
-            print("Please re-upload the correct, full-sized model file to your Hugging Face repository.")
-            # We raise an error to stop the app from crashing with a confusing pickle error later.
+            print(f"🚨 WARNING: CRITICAL ERROR! File at {path} is a pointer, not a model.")
             raise Exception(f"Downloaded file {path} is a pointer, not a model.")
     except Exception as e:
         print(f"Could not verify file size for {path}: {e}")
