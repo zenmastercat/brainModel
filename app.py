@@ -19,8 +19,8 @@ device = torch.device("cpu") # Run on CPU for deployment
 
 # --- URLS for your hosted models ---
 # IMPORTANT: Replace these with your new, correct direct download links from Hugging Face
-CLS_MODEL_URL = "https://huggingface.co/zenmastercat/brain-mri-analyzer-models/resolve/main/classification_model_quantized.pth?download=true"
-SEG_MODEL_URL = "https://huggingface.co/zenmastercat/brain-mri-analyzer-models/resolve/main/segmentation_model_weights.pth?download=true"
+CLS_MODEL_URL = "https://huggingface.co/zenmastercat/brain-mri-analyzer-models/resolve/main/classification_model_quantized.pth"
+SEG_MODEL_URL = "https://huggingface.co/zenmastercat/brain-mri-analyzer-models/resolve/main/segmentation_model_weights.pth"
 
 # Define local paths to save the models
 MODELS_DIR = "models"
