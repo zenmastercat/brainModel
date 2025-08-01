@@ -6,15 +6,12 @@ body {
     color: #e0e0e0;
     margin: 0;
     padding: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    min-height: 100vh;
 }
 
 .container {
     width: 100%;
-    max-width: 900px;
+    max-width: 1200px;
+    margin: 0 auto;
     background-color: #1e1e1e;
     border-radius: 12px;
     padding: 30px;
@@ -29,7 +26,8 @@ header {
 }
 
 h1 { color: #ffffff; font-weight: 700; }
-h2 { color: #4CAF50; text-align: center; }
+h2, h3, h4 { color: #009688; }
+
 
 .disclaimer {
     color: #ffcc80;
@@ -76,7 +74,7 @@ input[type="file"] { display: none; }
 #analyze-btn:hover { background-color: #45a049; }
 #analyze-btn:disabled { background-color: #555; cursor: not-allowed; }
 
-#loader { text-align: center; }
+#loader { text-align: center; padding: 40px; }
 .spinner {
     border: 4px solid rgba(255, 255, 255, 0.2);
     border-left-color: #4CAF50;
@@ -95,40 +93,52 @@ input[type="file"] { display: none; }
 
 .results-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: 2fr 1fr;
     gap: 20px;
-    margin-bottom: 20px;
+    align-items: flex-start;
 }
 
-.image-card, .prediction-card {
+.card {
     background-color: #2a2a2a;
     padding: 20px;
     border-radius: 8px;
-    text-align: center;
 }
 
-h3 { margin-top: 0; color: #007bff; }
-
-.segmentation-container {
+#viewer-3d {
     position: relative;
+    height: 500px; /* Fixed height for the 3D canvas container */
+}
+
+#3d-canvas {
     width: 100%;
-    max-width: 300px;
-    margin: 0 auto;
-    background-color: #000;
+    height: 100%;
+    display: block;
     border-radius: 6px;
 }
 
-img { max-width: 100%; border-radius: 6px; display: block; }
-
-#mask-overlay {
+.info-text {
     position: absolute;
-    top: 0;
-    left: 0;
-    opacity: 0.5;
-    mix-blend-mode: screen;
+    bottom: 10px;
+    left: 10px;
+    color: #aaa;
+    font-size: 0.8em;
+    background-color: rgba(0,0,0,0.5);
+    padding: 5px;
+    border-radius: 4px;
 }
 
-.prediction-card p { font-size: 1.2em; }
+#original-image-container img {
+    max-width: 100%;
+    border-radius: 6px;
+    border: 1px solid #444;
+}
+.prediction-card {
+    margin-top: 20px;
+    background-color: #333;
+    padding: 15px;
+    border-radius: 6px;
+}
+.prediction-card p { font-size: 1.1em; margin: 10px 0; }
 .highlight { font-weight: 700; color: #ffffff; }
 
 #error-section {
@@ -137,4 +147,13 @@ img { max-width: 100%; border-radius: 6px; display: block; }
     background-color: rgba(255, 138, 128, 0.1);
     padding: 15px;
     border-radius: 8px;
+}
+
+@media (max-width: 900px) {
+    .results-grid {
+        grid-template-columns: 1fr;
+    }
+    #viewer-3d {
+        height: 400px;
+    }
 }
