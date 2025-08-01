@@ -36,21 +36,20 @@ seg_transform = transforms.Compose([
 def load_models():
     """Load and return the trained models."""
     # --- Load Quantized Classification Model ---
-    # 1. Create the original model structure
     cls_model_orig = SimpleCNN(num_classes=len(CLASS_NAMES)).to(device)
-    # 2. Apply dynamic quantization to the structure
     cls_model_quantized = torch.quantization.quantize_dynamic(
         cls_model_orig, {torch.nn.Linear}, dtype=torch.qint8
     )
-    # 3. Load the quantized state_dict
+    
     cls_model_quantized.load_state_dict(
-        torch.load('models/classification_model_quantized.pth', map_location=device)
+        torch.load('models/classification_model_quantized.pth', map_location=device, weights_only=False)
     )
     cls_model_quantized.eval()
 
     # --- Load Segmentation Model ---
     seg_model = SimpleUNet().to(device)
-    seg_model.load_state_dict(torch.load('models/segmentation_model_weights.pth', map_location=device))
+    
+    seg_model.load_state_dict(torch.load('models/segmentation_model_weights.pth', map_location=device, weights_only=False))
     seg_model.eval()
 
     return cls_model_quantized, seg_model
@@ -66,7 +65,6 @@ def process_image(image_pil, transform):
 def tensor_to_base64(tensor):
     """Convert a tensor to a base64 encoded image string."""
     tensor = tensor.squeeze().cpu()
-    # Apply sigmoid to segmentation output to get probabilities
     tensor = torch.sigmoid(tensor)
     image = transforms.ToPILImage()(tensor)
     buffered = io.BytesIO()
@@ -88,8 +86,6 @@ def predict():
     image_data = base64.b64decode(request.json['file'])
     image_pil = Image.open(io.BytesIO(image_data))
 
-    # --- Classification ---
-    # Convert to RGB for the 3-channel classification model
     image_rgb = image_pil.convert("RGB")
     cls_input = process_image(image_rgb, cls_transform)
     with torch.no_grad():
@@ -99,8 +95,6 @@ def predict():
         predicted_class = CLASS_NAMES[predicted_idx.item()]
         confidence_percent = f"{confidence.item()*100:.2f}%"
 
-    # --- Segmentation ---
-    # Convert to Grayscale for the 1-channel segmentation model
     image_gray = image_pil.convert("L")
     seg_input = process_image(image_gray, seg_transform)
     with torch.no_grad():
@@ -115,5 +109,4 @@ def predict():
     })
 
 if __name__ == '__main__':
-    # Gunicorn will be used in production on Render
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
