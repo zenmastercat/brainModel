@@ -6,6 +6,7 @@ import torch
 import torchvision.transforms as transforms
 from flask import Flask, request, jsonify, render_template
 from PIL import Image
+import urllib.request
 
 # Import your model classes from the other file
 from model_definitions import SimpleCNN, SimpleUNet
@@ -16,10 +17,38 @@ app = Flask(__name__)
 # --- MODEL AND TRANSFORMS LOADING ---
 device = torch.device("cpu") # Run on CPU for deployment
 
+# --- URLS for your hosted models ---
+# These are the direct download links from your Hugging Face repository
+CLS_MODEL_URL = "https://huggingface.co/zenmastercat/brain-mri-analyzer-models/resolve/main/classification_model_quantized.pth"
+SEG_MODEL_URL = "https://huggingface.co/zenmastercat/brain-mri-analyzer-models/resolve/main/segmentation_model_weights.pth"
+
+# Define local paths to save the models
+MODELS_DIR = "models"
+CLS_MODEL_PATH = os.path.join(MODELS_DIR, "classification_model_quantized.pth")
+SEG_MODEL_PATH = os.path.join(MODELS_DIR, "segmentation_model_weights.pth")
+
+def download_model(url, path):
+    """Downloads a file from a URL to a given path."""
+    if not os.path.exists(path):
+        print(f"Downloading model from {url} to {path}...")
+        os.makedirs(MODELS_DIR, exist_ok=True)
+        try:
+            urllib.request.urlretrieve(url, path)
+            print("Download complete.")
+        except Exception as e:
+            print(f"Error downloading model: {e}")
+            # Exit if model can't be downloaded
+            raise e
+            
+# Download models on startup
+download_model(CLS_MODEL_URL, CLS_MODEL_PATH)
+download_model(SEG_MODEL_URL, SEG_MODEL_PATH)
+
+
 # Define class names for classification
 CLASS_NAMES = ['glioma', 'meningioma', 'notumor', 'pituitary']
 
-# Define the image transforms (MUST be the same as during training)
+# Define the image transforms
 cls_transform = transforms.Compose([
     transforms.Resize((128, 128)),
     transforms.ToTensor(),
@@ -34,22 +63,20 @@ seg_transform = transforms.Compose([
 
 # Load the trained models
 def load_models():
-    """Load and return the trained models."""
+    """Load and return the trained models from local files."""
     # --- Load Quantized Classification Model ---
     cls_model_orig = SimpleCNN(num_classes=len(CLASS_NAMES)).to(device)
     cls_model_quantized = torch.quantization.quantize_dynamic(
         cls_model_orig, {torch.nn.Linear}, dtype=torch.qint8
     )
-    
     cls_model_quantized.load_state_dict(
-        torch.load('models/classification_model_quantized.pth', map_location=device, weights_only=False)
+        torch.load(CLS_MODEL_PATH, map_location=device, weights_only=False)
     )
     cls_model_quantized.eval()
 
     # --- Load Segmentation Model ---
     seg_model = SimpleUNet().to(device)
-    
-    seg_model.load_state_dict(torch.load('models/segmentation_model_weights.pth', map_location=device, weights_only=False))
+    seg_model.load_state_dict(torch.load(SEG_MODEL_PATH, map_location=device, weights_only=False))
     seg_model.eval()
 
     return cls_model_quantized, seg_model
