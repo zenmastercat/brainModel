@@ -1,145 +1,61 @@
 import os
 import io
 import base64
-import numpy as np
-import torch
-import torchvision.transforms as transforms
+# import numpy as np
+# import torch
+# import torchvision.transforms as transforms
 from flask import Flask, request, jsonify, render_template
 from PIL import Image
-import urllib.request
+# import urllib.request
 
-# Import your model classes from the other file
-from model_definitions import SimpleCNN, SimpleUNet
+# # Import your model classes from the other file
+# from model_definitions import SimpleCNN, SimpleUNet
 
 # Initialize the Flask app
 app = Flask(__name__)
 
-# --- MODEL AND TRANSFORMS LOADING ---
-device = torch.device("cpu") # Run on CPU for deployment
+# --- TEMPORARY DEBUGGING STEP ---
+# The model loading is disabled to see if the app can start.
+# If this deploys successfully, the problem is confirmed to be with model loading.
+print("--- RUNNING IN DEBUG MODE: MODEL LOADING IS DISABLED ---")
 
-# --- URLS for your hosted models ---
-# IMPORTANT: Replace these with your new, correct direct download links from Hugging Face
-CLS_MODEL_URL = "https://huggingface.co/zenmastercat/brain-mri-analyzer-models/resolve/main/classification_model_quantized.pth"
-SEG_MODEL_URL = "https://huggingface.co/zenmastercat/brain-mri-analyzer-models/resolve/main/segmentation_model_weights.pth"
-
-# Define local paths to save the models
-MODELS_DIR = "models"
-CLS_MODEL_PATH = os.path.join(MODELS_DIR, "classification_model_quantized.pth")
-SEG_MODEL_PATH = os.path.join(MODELS_DIR, "segmentation_model_weights.pth")
-
-def download_model(url, path):
-    """Downloads a file from a URL to a given path and verifies its size."""
-    if not os.path.exists(path):
-        print(f"Downloading model from {url} to {path}...")
-        os.makedirs(MODELS_DIR, exist_ok=True)
-        try:
-            urllib.request.urlretrieve(url, path)
-            print("Download complete.")
-        except Exception as e:
-            print(f"Error downloading model: {e}")
-            raise e
-            
-    # --- ADDED DEBUGGING STEP ---
-    try:
-        file_size_bytes = os.path.getsize(path)
-        file_size_mb = file_size_bytes / (1024 * 1024)
-        print(f"✅ Verified file: {path}. Size: {file_size_mb:.2f} MB")
-        if file_size_bytes < 1000:
-            print(f"🚨 WARNING: CRITICAL ERROR! File at {path} is a pointer, not a model.")
-            raise Exception(f"Downloaded file {path} is a pointer, not a model.")
-    except Exception as e:
-        print(f"Could not verify file size for {path}: {e}")
-        raise e
-
-# Download models on startup
-download_model(CLS_MODEL_URL, CLS_MODEL_PATH)
-download_model(SEG_MODEL_URL, SEG_MODEL_PATH)
-
-
-# Define class names for classification
-CLASS_NAMES = ['glioma', 'meningioma', 'notumor', 'pituitary']
-
-# Define the image transforms
-cls_transform = transforms.Compose([
-    transforms.Resize((128, 128)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-])
-
-seg_transform = transforms.Compose([
-    transforms.Resize((128, 128)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.5], std=[0.5])
-])
-
-# Load the trained models
+# --- DUMMY load_models function ---
 def load_models():
-    """Load and return the trained models from local files."""
-    # --- Load Quantized Classification Model ---
-    cls_model_orig = SimpleCNN(num_classes=len(CLASS_NAMES)).to(device)
-    cls_model_quantized = torch.quantization.quantize_dynamic(
-        cls_model_orig, {torch.nn.Linear}, dtype=torch.qint8
-    )
-    cls_model_quantized.load_state_dict(
-        torch.load(CLS_MODEL_PATH, map_location=device, weights_only=False)
-    )
-    cls_model_quantized.eval()
-
-    # --- Load Segmentation Model ---
-    seg_model = SimpleUNet().to(device)
-    seg_model.load_state_dict(torch.load(SEG_MODEL_PATH, map_location=device, weights_only=False))
-    seg_model.eval()
-
-    return cls_model_quantized, seg_model
+    """
+    This is a dummy function. It does nothing.
+    We are using this to test if the web server itself can start.
+    """
+    print("✅ load_models() was called, but is currently disabled for debugging.")
+    # Return None to simulate the models
+    return None, None
 
 cls_model, seg_model = load_models()
-print("✅ Models loaded successfully and in evaluation mode.")
+print("✅ Application has passed the model loading stage (currently dummied).")
 
-# --- HELPER FUNCTIONS and FLASK ROUTES (No changes below this line) ---
-def process_image(image_pil, transform):
-    return transform(image_pil).unsqueeze(0).to(device)
 
-def tensor_to_base64(tensor):
-    tensor = tensor.squeeze().cpu()
-    tensor = torch.sigmoid(tensor)
-    image = transforms.ToPILImage()(tensor)
-    buffered = io.BytesIO()
-    image.save(buffered, format="PNG")
-    return base64.b64encode(buffered.getvalue()).decode('utf-8')
-
+# --- FLASK ROUTES (Modified for Debugging) ---
 @app.route('/')
 def index():
+    """Render the main HTML page."""
     return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    if 'file' not in request.json:
-        return jsonify({'error': 'No file part'}), 400
-    
-    image_data = base64.b64decode(request.json['file'])
-    image_pil = Image.open(io.BytesIO(image_data))
-
-    image_rgb = image_pil.convert("RGB")
-    cls_input = process_image(image_rgb, cls_transform)
-    with torch.no_grad():
-        cls_output = cls_model(cls_input)
-        probabilities = torch.nn.functional.softmax(cls_output, dim=1)
-        confidence, predicted_idx = torch.max(probabilities, 1)
-        predicted_class = CLASS_NAMES[predicted_idx.item()]
-        confidence_percent = f"{confidence.item()*100:.2f}%"
-
-    image_gray = image_pil.convert("L")
-    seg_input = process_image(image_gray, seg_transform)
-    with torch.no_grad():
-        seg_output = seg_model(seg_input)
-    
-    mask_base64 = tensor_to_base64(seg_output)
-
+    """
+    This is a dummy predict function. It will return a fixed response
+    without using any models.
+    """
+    print("✅ /predict endpoint was hit. Returning dummy response.")
+    # Return a fixed, dummy response for testing purposes
     return jsonify({
-        'classification': predicted_class,
-        'confidence': confidence_percent,
-        'mask': mask_base64
+        'classification': 'debug_mode',
+        'confidence': '100%',
+        'mask': '' # Empty mask
     })
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
+    # This part is for local development, Gunicorn uses the 'app' object directly.
+    # The host and port settings are important for production.
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)
+
