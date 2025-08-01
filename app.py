@@ -28,7 +28,7 @@ CLS_MODEL_PATH = os.path.join(MODELS_DIR, "classification_model_quantized.pth")
 SEG_MODEL_PATH = os.path.join(MODELS_DIR, "segmentation_model_weights.pth")
 
 def download_model(url, path):
-    """Downloads a file from a URL to a given path."""
+    """Downloads a file from a URL to a given path and verifies its size."""
     if not os.path.exists(path):
         print(f"Downloading model from {url} to {path}...")
         os.makedirs(MODELS_DIR, exist_ok=True)
@@ -37,9 +37,26 @@ def download_model(url, path):
             print("Download complete.")
         except Exception as e:
             print(f"Error downloading model: {e}")
-            # Exit if model can't be downloaded
             raise e
             
+    # --- ADDED DEBUGGING STEP ---
+    # This will check the size of the downloaded file and print it to the logs.
+    try:
+        file_size_bytes = os.path.getsize(path)
+        file_size_mb = file_size_bytes / (1024 * 1024)
+        print(f"✅ Verified file: {path}. Size: {file_size_mb:.2f} MB")
+        # A real model file will be much larger than 1KB (approx 0.001 MB).
+        # A Git LFS pointer file is usually around 133 bytes.
+        if file_size_bytes < 1000:
+            print("🚨 WARNING: CRITICAL ERROR! 🚨")
+            print("This file is extremely small. It is a Git LFS pointer, NOT the real model.")
+            print("Please re-upload the correct, full-sized model file to your Hugging Face repository.")
+            # We raise an error to stop the app from crashing with a confusing pickle error later.
+            raise Exception(f"Downloaded file {path} is a pointer, not a model.")
+    except Exception as e:
+        print(f"Could not verify file size for {path}: {e}")
+        raise e
+
 # Download models on startup
 download_model(CLS_MODEL_URL, CLS_MODEL_PATH)
 download_model(SEG_MODEL_URL, SEG_MODEL_PATH)
@@ -84,13 +101,11 @@ def load_models():
 cls_model, seg_model = load_models()
 print("✅ Models loaded successfully and in evaluation mode.")
 
-# --- HELPER FUNCTIONS ---
+# --- HELPER FUNCTIONS and FLASK ROUTES (No changes below this line) ---
 def process_image(image_pil, transform):
-    """Process a PIL image using the given transform."""
     return transform(image_pil).unsqueeze(0).to(device)
 
 def tensor_to_base64(tensor):
-    """Convert a tensor to a base64 encoded image string."""
     tensor = tensor.squeeze().cpu()
     tensor = torch.sigmoid(tensor)
     image = transforms.ToPILImage()(tensor)
@@ -98,15 +113,12 @@ def tensor_to_base64(tensor):
     image.save(buffered, format="PNG")
     return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
-# --- FLASK ROUTES ---
 @app.route('/')
 def index():
-    """Render the main HTML page."""
     return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    """Handle the image upload and model prediction."""
     if 'file' not in request.json:
         return jsonify({'error': 'No file part'}), 400
     
