@@ -18,9 +18,9 @@ app = Flask(__name__)
 device = torch.device("cpu") # Run on CPU for deployment
 
 # --- URLS for your hosted models ---
-# These are the direct download links from your Limewire upload
-CLS_MODEL_URL = "https://limewire.com/d/nNxZ2"
-SEG_MODEL_URL = "https://limewire.com/d/SPcTK"
+# IMPORTANT: Replace these with your new, correct direct download links from Hugging Face
+CLS_MODEL_URL = "PASTE_YOUR_NEW_CLASSIFICATION_MODEL_LINK_HERE"
+SEG_MODEL_URL = "PASTE_YOUR_NEW_SEGMENTATION_MODEL_LINK_HERE"
 
 # Define local paths to save the models
 MODELS_DIR = "models"
@@ -33,10 +33,6 @@ def download_model(url, path):
         print(f"Downloading model from {url} to {path}...")
         os.makedirs(MODELS_DIR, exist_ok=True)
         try:
-            # Add a user-agent header to mimic a browser, which can help with some hosts
-            opener = urllib.request.build_opener()
-            opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-            urllib.request.install_opener(opener)
             urllib.request.urlretrieve(url, path)
             print("Download complete.")
         except Exception as e:
@@ -44,7 +40,6 @@ def download_model(url, path):
             raise e
             
     # --- ADDED DEBUGGING STEP ---
-    # This will check the size of the downloaded file and print it to the logs.
     try:
         file_size_bytes = os.path.getsize(path)
         file_size_mb = file_size_bytes / (1024 * 1024)
