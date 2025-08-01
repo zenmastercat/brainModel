@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brain MRI Analyzer</title>
+    <title>3D Brain MRI Analyzer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Brain MRI Analyzer</h1>
-            <p>Upload a 2D slice of a brain MRI to get an analysis.</p>
+            <h1>3D Brain MRI Analyzer</h1>
+            <p>Upload a 2D slice of a brain MRI to visualize the analysis in 3D.</p>
             <p class="disclaimer"><strong>Disclaimer:</strong> For educational purposes only. Not for medical diagnosis.</p>
         </header>
 
@@ -27,24 +27,24 @@
             </div>
 
             <div id="results-section" class="hidden">
-                <h2>Analysis Results</h2>
                 <div class="results-grid">
-                    <div class="image-card">
-                        <h3>Original Image</h3>
-                        <img id="original-image" src="#" alt="Original MRI">
+                    <div class="card" id="viewer-3d">
+                        <h3>3D Visualization</h3>
+                        <canvas id="3d-canvas"></canvas>
+                        <div class="info-text">Click and drag to rotate. Scroll to zoom.</div>
                     </div>
-                    <div class="image-card">
-                        <h3>Segmentation Overlay</h3>
-                        <div class="segmentation-container">
-                            <img id="segmented-image" src="#" alt="Segmented MRI">
-                            <img id="mask-overlay" src="#" alt="Tumor Mask">
+                    <div class="card">
+                        <h3>Analysis Details</h3>
+                        <div id="original-image-container">
+                            <h4>Original MRI Slice</h4>
+                            <img id="original-image" src="#" alt="Original MRI">
+                        </div>
+                        <div class="prediction-card">
+                            <h4>Prediction</h4>
+                            <p id="prediction-text">Tumor Type: <span class="highlight">...</span></p>
+                            <p id="confidence-text">Confidence: <span class="highlight">...</span></p>
                         </div>
                     </div>
-                </div>
-                <div class="prediction-card">
-                    <h3>Prediction</h3>
-                    <p id="prediction-text">Tumor Type: <span class="highlight">...</span></p>
-                    <p id="confidence-text">Confidence: <span class="highlight">...</span></p>
                 </div>
             </div>
              <div id="error-section" class="hidden">
@@ -53,6 +53,12 @@
         </main>
     </div>
 
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <!-- Your application script -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
