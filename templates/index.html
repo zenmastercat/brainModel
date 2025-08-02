@@ -3,59 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Brain MRI Analyzer</title>
+    <title>Volumetric Brain MRI Analyzer</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>3D Brain MRI Analyzer</h1>
-            <p>Upload a 2D slice of a brain MRI to visualize the analysis in 3D.</p>
+            <h1>Volumetric Brain MRI Analyzer</h1>
+            <p>Upload a NIfTI file (.nii) or a ZIP of DICOM files to generate a 3D tumor model.</p>
             <p class="disclaimer"><strong>Disclaimer:</strong> For educational purposes only. Not for medical diagnosis.</p>
         </header>
 
         <main>
             <div class="upload-section">
-                <input type="file" id="mri-file-input" accept="image/png, image/jpeg, image/gif">
-                <label for="mri-file-input" class="file-label">Choose an Image</label>
+                <input type="file" id="mri-file-input" accept=".nii,.nii.gz,.zip">
+                <label for="mri-file-input" class="file-label">Choose a NIfTI or .zip File</label>
                 <button id="analyze-btn" disabled>Analyze</button>
             </div>
 
             <div id="loader" class="hidden">
                 <div class="spinner"></div>
-                <p>Analyzing, please wait...</p>
+                <p>Processing 3D scan, this may take a moment...</p>
             </div>
 
             <div id="results-section" class="hidden">
                 <div class="results-grid">
                     <div class="card" id="viewer-3d">
-                        <h3>3D Visualization</h3>
+                        <h3>3D Tumor Visualization</h3>
                         <canvas id="3d-canvas"></canvas>
                         <div class="info-text">Click and drag to rotate. Scroll to zoom.</div>
                     </div>
-                    <div class="card">
-                        <h3>Analysis Details</h3>
-                        <div id="original-image-container">
-                            <h4>Original MRI Slice</h4>
-                            <img id="original-image" src="#" alt="Original MRI">
+                    <div class="card" id="viewer-2d">
+                        <h3>Slice Viewer</h3>
+                        <div class="slice-container">
+                            <img id="slice-image" src="#" alt="MRI Slice">
+                            <img id="mask-overlay" src="#" alt="Tumor Mask">
                         </div>
-                        <div class="prediction-card">
-                            <h4>Prediction</h4>
-                            <p id="prediction-text">Tumor Type: <span class="highlight">...</span></p>
-                            <p id="confidence-text">Confidence: <span class="highlight">...</span></p>
-                        </div>
+                        <input type="range" id="slice-slider" min="0" max="100" value="50">
+                        <p>Slice: <span id="slice-number">0</span> / <span id="total-slices">0</span></p>
                     </div>
                 </div>
             </div>
              <div id="error-section" class="hidden">
-                <p>An error occurred. Please try again with a different image.</p>
+                <p>An error occurred. Please ensure the file is a valid NIfTI or DICOM zip file.</p>
             </div>
         </main>
     </div>
 
     <!-- Three.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     
     <!-- Your application script -->
